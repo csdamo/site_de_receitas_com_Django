@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User
-from django.contrib import auth
+from django.contrib import auth, messages
 from receitas.models import Receita
 
 def cadastro(request):
@@ -9,22 +9,24 @@ def cadastro(request):
         email = request.POST ['email']
         password = request.POST ['password']
         password2 = request.POST ['password2']
-        if not nome.strip():
-            print('O campo nome não pode ficar em branco')
+        if campo_vazio(nome):
+            messages.error(request, 'O campo nome não pode ficar em branco')
             return redirect('cadastro')
-        if not email.strip():
-            print('O campo e-mail não pode ficar em branco')
+        if campo_vazio(email):
+            messages.error(request, 'O campo e-mail não pode ficar em branco')
             return redirect('cadastro')
-        if password != password2:
-            print('As senhas não conferem')
+        if senhas_nao_sao_iguais(password, password2):
+            messages.error(request, 'As senhas não conferem')
             return redirect('cadastro')
         if User.objects.filter(email=email).exists():
-            print('usuário já cadastrado')
+            messages.error(request, 'Usuário já cadastrado')
+            return redirect('cadastro')
+        if User.objects.filter(username=nome).exists():
+            messages.error(request, 'Usuário já cadastrado')
             return redirect('cadastro')
         user = User.objects.create_user(username=nome, email=email, password=password)
         user.save()
-        print('usuário cadastrado com sucesso')
-        print(nome, email, password, password2)
+        messages.success(request,'Usuário cadastrado com sucesso')
         return redirect('login')
     else:
         return render(request, 'usuarios/cadastro.html')
@@ -34,17 +36,14 @@ def login(request):
     if request.method == 'POST':
         email = request.POST ['email']
         password = request.POST ['senha']
-        if email =='' or password == '':
-            print('os campos devem estar preenchidos')
+        if campo_vazio(email) or campo_vazio(password):
+            messages.error(request, 'Os campos não pode ficar em branco')
             return redirect ('login')
-        print(email, password)
         if User.objects.filter(email=email).exists():
             nome = User.objects.filter(email=email).values_list('username', flat=True).get()
             user = auth.authenticate(request, username=nome, password=password)
             if user is not None:
                 auth.login(request, user)
-                print('login realizado com sucesso')
-            print(nome)
         return redirect('dashboard')
     return render(request, 'usuarios/login.html')
 
@@ -84,3 +83,10 @@ def cria_receita(request):
         return redirect('dashboard')
     else:
         return render(request, 'usuarios/cria_receita.html')
+
+
+def campo_vazio(campo):
+    return not campo.strip()
+
+def senhas_nao_sao_iguais(password, password2):
+    return password != password2
