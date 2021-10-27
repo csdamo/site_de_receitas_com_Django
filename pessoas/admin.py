@@ -1,4 +1,4 @@
-from django.contrib import admin
+'''from django.contrib import admin
 from .models import Pessoa
 
 class ListandoPessoas(admin.ModelAdmin):
@@ -7,4 +7,4 @@ class ListandoPessoas(admin.ModelAdmin):
     search_fields = ('nome', 'email',)
     list_per_page = 5
 
-admin.site.register(Pessoa, ListandoPessoas)
+admin.site.register(Pessoa, ListandoPessoas)'''
